@@ -9,7 +9,7 @@
 		};
 	};
 
-	var chainableAPI = function(schema) {
+	var chainableApi = function(schema) {
 		api = objAssign(schema);
 		console.log('schema', schema);
 		return schema;
@@ -40,5 +40,5 @@
 		}
 		return true;
 	};
-	exports.chainableAPI = chainableAPI;
+	exports.chainableApi = chainableApi;
 })(window);
