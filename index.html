@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chainable Api example</title>
+</head>
+<body>
+  <script src="chainable-api.js"></script>
+  <script>
+    var schema = {
+      users:{},
+      team: {
+        players: {},
+      },
+      list:{
+        members:{
+          tweets:{
+
+          }
+        }
+      }
+    };
+
+    var api = new chainableAPI(schema);
+  </script>
+</body>
+</html>
