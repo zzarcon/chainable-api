@@ -42,43 +42,54 @@
 		}
 		return str;
 	};
+
 	/**
 	 * Abstraction to make a XMLHttpRequest
 	 * @param  {String} method  HTTP method [GET,POST,PUT,DELETE]
 	 * @param  {String} url
 	 * @param  {Object} params  Data to send in the request
-	 * @param  {Function} success Success callback
 	 */
-	var request = function(method, url, params, success) {
+	var request = function(method, url, params) {
 		console.log('request', arguments);
-		var xhr = new XMLHttpRequest;
-		var async = true;
-		//Parse parameters dependent of the method type
-		if (params) {
-			if (method === 'GET') {
-				params = parametrize(params);
-				url += '?' + params;
-			} else if (method === 'POST' || method === 'PUT') {
-				params = JSON.stringify(params);
-			}
-		}
-		//TODO: Remove in production
-		url = ["fake_api/", url, '.json'].join('');
-		xhr.open(method, url, async);
-		xhr.send(params);
 
-		xhr.onload = function() {
-			try {
-				data = JSON.parse(this.response);
-			} catch (e) {
-				data = {};
+		return new Promise(function(resolve, reject) {
+			var xhr = new XMLHttpRequest;
+			var async = true;
+			//Parse parameters dependent of the method type
+			if (params) {
+				if (method === 'GET') {
+					params = parametrize(params);
+					url += '?' + params;
+				} else if (method === 'POST' || method === 'PUT') {
+					params = JSON.stringify(params);
+				}
 			}
 
-			if (success) success(data);
-		};
-		//TODO: Implement onerror callback
-		xhr.onerror = function() {};
+			xhr.open(method, url, async);
+			xhr.send(params);
+
+			xhr.onload = function() {
+
+				if (xhr.status === 200) {
+					try {
+						data = JSON.parse(this.response);
+					} catch (e) {
+						data = {};
+					}
+
+					resolve(data);
+				} else {
+					reject(xhr.statusText);
+				}
+
+			};
+
+			xhr.onerror = function() {
+				reject(Error("Network Error"));
+			};
+		});
 	};
+
 	/**
 	 * Wrapper for make request
 	 * @param  {String} endpoint Uri against make the request
@@ -92,52 +103,46 @@
 			 * Find a record in the Api
 			 * @param  {Number}   id
 			 * @param  {Object}   [params]
-			 * @param  {Function} [callback] Success callback
 			 */
-			find: function(id, params, callback) {
+			find: function(id, params) {
 				var args = Array.prototype.slice.call(arguments, 0);
 				var endpoint = this.endpoint;
-				//polymorphism
-				if (typeof args[0] === 'function') {
-					callback = args[0];
-				} else if (typeof args[0] === 'object') {
+
+				if (typeof args[0] === 'object') {
 					params = args[0];
-					callback = typeof args[1] === 'function' ? args[1] : null;
 				} else if (typeof args[0] === 'string' || typeof args[0] === 'number') {
 					endpoint += '/' + id;
 				}
 
-				request('GET', endpoint, params, callback);
+				return request('GET', endpoint, params);
 			},
 			/**
 			 * Create's a record
 			 * @param  {Object}   params
-			 * @param  {Function} [callback]
 			 */
-			create: function(params, callback) {
-				request('POST', this.endpoint, params, callback);
+			create: function(params) {
+				return request('POST', this.endpoint, params);
 			},
 			/**
 			 * Update a record
 			 * @param  {Number}   id Record id
 			 * @param  {Object}   [params]
-			 * @param  {Function} [callback]
 			 */
-			save: function(id, params, callback) {
+			save: function(id, params) {
 				var endpoint = [this.endpoint, id].join('/');
-				request('PUT', endpoint, params, callback);
+				return request('PUT', endpoint, params);
 			},
 			/**
 			 * Delete record
 			 * @param  {Number}   id
-			 * @param  {Function} [callback]
 			 */
-			delete: function(id, callback) {
+			delete: function(id) {
 				var endpoint = [this.endpoint, id].join('/');
-				request('DELETE', endpoint, {}, callback);
+				return request('DELETE', endpoint, {});
 			}
 		};
 	};
+
 	/**
 	 * Chainable api Object
 	 * @param  {Object} schema Describes the api schema
@@ -147,6 +152,7 @@
 		api = setHttp(schema);
 		return schema;
 	};
+
 	/**
 	 * Set http methods to each property in the object
 	 * @param  {Object} schema Defines the Api schema
@@ -170,6 +176,7 @@
 			}
 		};
 	};
+
 	/**
 	 * Apply properties from the destination to the source objects
 	 * @param  {Object} source
@@ -182,6 +189,7 @@
 		}
 		return source;
 	};
+
 	/**
 	 * Return true if the passed object is empty
 	 * @param  {Object} obj
