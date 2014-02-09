@@ -50,12 +50,12 @@
 	 * @param  {Object} params  Data to send in the request
 	 */
 	var request = function(method, url, params) {
-		console.log('request', arguments);
 
 		return new Promise(function(resolve, reject) {
+
 			var xhr = new XMLHttpRequest;
 			var async = true;
-			//Parse parameters dependent of the method type
+
 			if (params) {
 				if (method === 'GET') {
 					params = parametrize(params);
@@ -76,7 +76,6 @@
 					} catch (e) {
 						data = {};
 					}
-
 					resolve(data);
 				} else {
 					reject(xhr.statusText);
@@ -87,6 +86,7 @@
 			xhr.onerror = function() {
 				reject(Error("Network Error"));
 			};
+
 		});
 	};
 
