@@ -204,4 +204,4 @@
 
 	exports.chainableApi = chainableApi;
 
-})(window);
+})(typeof window !== 'undefined' ? window : module.exports);
